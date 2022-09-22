@@ -7,7 +7,7 @@ import whisper
 import torch
 
 def download_model():
-    model = whisper.load_model("small")
+    model = whisper.load_model("small.en")
 
 if __name__ == "__main__":
     download_model()

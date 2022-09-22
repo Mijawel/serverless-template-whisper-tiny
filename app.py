@@ -9,7 +9,7 @@ from io import BytesIO
 def init():
     global model
     
-    model = whisper.load_model("medium")
+    model = whisper.load_model("medium.en")
 
 # Inference is ran for every server call
 # Reference your preloaded global model variable here.
@@ -22,12 +22,12 @@ def inference(model_inputs:dict) -> dict:
         return {'message': "No input provided"}
     
     mp3Bytes = BytesIO(base64.b64decode(mp3BytesString.encode("ISO-8859-1")))
-    with open('input.flac','wb') as file:
+    with open('input.mp3','wb') as file:
         file.write(mp3Bytes.getbuffer())
     
     # Run the model
-    result = model.transcribe("input.flac")
+    result = model.transcribe("input.mp3")
     output = {"vtt":result["vtt"]}
-    os.remove("input.flac")
+    os.remove("input.mp3")
     # Return the results as a dictionary
     return output

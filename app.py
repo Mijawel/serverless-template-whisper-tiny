@@ -18,6 +18,7 @@ def inference(model_inputs:dict) -> dict:
 
     # Parse out your arguments
     mp3BytesString = model_inputs.get('mp3BytesString', None)
+    end_of_previous_chunk = model_inputs.get('end_of_previous_chunk', None)
     if mp3BytesString == None:
         return {'message': "No input provided"}
     
@@ -25,9 +26,16 @@ def inference(model_inputs:dict) -> dict:
     with open('input.mp3','wb') as file:
         file.write(mp3Bytes.getbuffer())
     
-    # Run the model
-    result = model.transcribe("input.mp3")
+    audio = whisper.load_audio('input.mp3')
+    audio = whisper.pad_or_trim(audio)
+    # make log-Mel spectrogram and move to the same device as the model
+    mel = whisper.log_mel_spectrogram(audio).to(model.device)
+    
+    # decode the audio
+    options = whisper.DecodingOptions(prefix=end_of_previous_chunk)
+    result = whisper.decode(model, mel, options)
     output = {"text":result["text"]}
     os.remove("input.mp3")
+    
     # Return the results as a dictionary
     return output

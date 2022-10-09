@@ -34,7 +34,8 @@ def inference(model_inputs:dict) -> dict:
     # decode the audio
     options = whisper.DecodingOptions(prefix=end_of_previous_chunk)
     result = whisper.decode(model, mel, options)
-    output = {"text":result["text"]}
+    # {"text":result["text"]} TypeError: 'DecodingResult' object is not subscriptable [2022-10-09 04:38:06 +0000]
+    output = {"text":result.text}
     os.remove("input.mp3")
     
     # Return the results as a dictionary

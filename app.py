@@ -32,7 +32,7 @@ def inference(model_inputs:dict) -> dict:
     mel = whisper.log_mel_spectrogram(audio).to(model.device)
     
     # decode the audio
-    options = whisper.DecodingOptions(prefix=end_of_previous_chunk)
+    options = whisper.DecodingOptions(prefix=end_of_previous_chunk,beam_size=5)
     result = whisper.decode(model, mel, options)
     # {"text":result["text"]} TypeError: 'DecodingResult' object is not subscriptable [2022-10-09 04:38:06 +0000]
     output = result.text

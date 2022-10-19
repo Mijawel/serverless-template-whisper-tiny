@@ -8,7 +8,6 @@ import torch
 
 def download_model():
     model = whisper.load_model("large")
-    sanity_check_model = whisper.load_model("base")
 
 if __name__ == "__main__":
     download_model()

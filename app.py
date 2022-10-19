@@ -8,16 +8,13 @@ from io import BytesIO
 # Load your model to GPU as a global variable here using the variable name "model"
 def init():
     global model
-    global sanity_check_model
     
     model = whisper.load_model("large")
-    sanity_check_model = whisper.load_model("base")
 
 # Inference is ran for every server call
 # Reference your preloaded global model variable here.
 def inference(model_inputs:dict) -> dict:
     global model
-    global sanity_check_model
 
     # Parse out your arguments
     mp3BytesString = model_inputs.get('mp3BytesString', None)
@@ -37,32 +34,9 @@ def inference(model_inputs:dict) -> dict:
     # decode the audio
     options = whisper.DecodingOptions(prefix=end_of_previous_chunk,beam_size=5)
     result = whisper.decode(model, mel, options)
+    # {"text":result["text"]} TypeError: 'DecodingResult' object is not subscriptable [2022-10-09 04:38:06 +0000]
     output = result.text
-
-    # do the sanity check
-    sanity_options = whisper.DecodingOptions()
-    sanity_result = whisper.decode(sanity_check_model, mel, sanity_options)
-    sanity_output = sanity_result.text
-
-    retry_needed = False
-    
-    # check that the lengths are approximately the same
-    if (abs(len(sanity_output) - (len(output)+len(end_of_previous_chunk))) > 10):
-        retry_needed = True
-
-    # check that the sets of words in the two outputs are approximately the same
-    sanity_set = set(sanity_output.split())
-    regular_set = set(output.split())
-    regular_set.update(set(end_of_previous_chunk.split()))
-
-    if (len(sanity_set.symmetric_difference(regular_set)) > 10):
-        retry_needed = True
-
-    if (retry_needed):
-        options = whisper.DecodingOptions(beam_size=5)
-        result = whisper.decode(model, mel, options)
-        output = result.text
-    
     os.remove("input.mp3")
     
-    return {'output':output,'retry_needed':retry_needed}
+    # Return the results as a dictionary
+    return output

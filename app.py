@@ -4,28 +4,12 @@ import os
 import base64
 from io import BytesIO
 
-torch.set_num_threads(1)
-
 # Init is ran on server startup
 # Load your model to GPU as a global variable here using the variable name "model"
 def init():
     global model
-    global vad_model
-    global utils
     
     model = whisper.load_model("large")
-
-    vad_model, utils = torch.hub.load(repo_or_dir='snakers4/silero-vad',
-                              model='silero_vad',
-                              force_reload=True,
-                              onnx=False)
-
-    (get_speech_timestamps,
-    save_audio,
-    read_audio,
-    VADIterator,
-    collect_chunks) = utils
-
 
 # Inference is ran for every server call
 # Reference your preloaded global model variable here.

@@ -1,4 +1,4 @@
 sanic==22.6.2
 transformers
 accelerate
-git+https://github.com/openai/whisper.git 
+git+https://github.com/openai/whisper.git@7f3e408e092e73d472036ae2e3fba1e7c68ca4e6

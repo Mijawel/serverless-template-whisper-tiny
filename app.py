@@ -4,6 +4,7 @@ import os
 import base64
 from io import BytesIO
 
+# Comment to force rebuild
 # Init is ran on server startup
 # Load your model to GPU as a global variable here using the variable name "model"
 def init():
@@ -37,6 +38,24 @@ def inference(model_inputs:dict) -> dict:
     # {"text":result["text"]} TypeError: 'DecodingResult' object is not subscriptable [2022-10-09 04:38:06 +0000]
     output = result.text
     os.remove("input.mp3")
+
+    # check that the resulting text does not contain too many repeated words
+    # if yes, we decode the audio again without a prefix
+    words = output.split()
+    if (len(set(words)) < len(words) / 2) and len(words) > 7:
+        result = whisper.decode(model, mel, whisper.DecodingOptions(beam_size=5))
+        output = result.text
+        # We then remove the number of words that were in thr prefix from the start of the output
+        if end_of_previous_chunk:
+            words = end_of_previous_chunk.split()
+            output = " ".join(output.split()[len(words):])
+    # If the output contains no punctuation and is more than 10 words long, we assume that the model has switched
+    # to non-punctuation mode and we add some punctuation to the start of the end_of_previous_chunk to trigger it to switch back
+    elif not any(char in output for char in ".?!,") and len(words) > 10:
+        end_of_previous_chunk = ", " + end_of_previous_chunk
+        result = whisper.decode(model, mel, whisper.DecodingOptions(prefix=end_of_previous_chunk, beam_size=5))
+        output = result.text
+    
     
     # Return the results as a dictionary
     return output
